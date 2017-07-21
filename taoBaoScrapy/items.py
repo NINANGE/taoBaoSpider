@@ -24,6 +24,7 @@ class TaobaoscrapyItem(scrapy.Item):
     month = scrapy.Field()
     yearAndMonth = scrapy.Field()
     detailURL = scrapy.Field()
+    categoryId = scrapy.Field()
     category = scrapy.Field()
 
 

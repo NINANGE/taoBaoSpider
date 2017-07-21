@@ -33,6 +33,7 @@ from scrapy.spiders import Spider
 from scrapy import Selector
 from scrapy import Request
 from taoBaoScrapy.items import TaobaoscrapyItem
+import pandas as pd
 import re
 import time
 import requests
@@ -44,7 +45,7 @@ import json
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
+df = pd.read_csv('taoBaoCategory.csv')
 
 class TBSpider(Spider):
     name = 'taoBaoSpider'
@@ -107,9 +108,19 @@ class TBSpider(Spider):
                             taoBaoItem['name'] = itemList[j]['raw_title']
                             taoBaoItem['mainPic'] = 'https:'+itemList[j]['pic_url']
                             taoBaoItem['price'] = itemList[j]['view_price']
+                            # try:
                             taoBaoItem['payPerson'] = itemList[j]['view_sales']
+                            # except Exception as e:
+                            #     print e
                             taoBaoItem['shopName'] = itemList[j]['nick']
-                            taoBaoItem['category'] = itemList[j]['category']
+                            taoBaoItem['categoryId'] = itemList[j]['category']
+
+                            for k in range(0,len(df)):
+                                if str(df['CategoryId'][k]) == itemList[j]['category']:
+                                    taoBaoItem['category'] = str(df['CategoryName'][k])
+                                    break
+                                else:
+                                    taoBaoItem['category'] = '-'
 
                             provString = ''
                             cityStr = ''
@@ -192,7 +203,14 @@ class TBSpider(Spider):
             taoBaoItem['price'] = allprice[j]
             taoBaoItem['payPerson'] = allPayPerson[j]
             taoBaoItem['shopName'] = allShopName[j]
-            taoBaoItem['category'] = allCategory[j]
+            taoBaoItem['categoryId'] = allCategory[j]
+
+            for k in range(0, len(df)):
+                if str(df['CategoryId'][k]) == allCategory[j]:
+                    taoBaoItem['category'] = str(df['CategoryName'][k])
+                    break
+                else:
+                    taoBaoItem['category'] = '-'
 
             provString = ''
             cityStr = ''
@@ -220,7 +238,7 @@ class TBSpider(Spider):
 class mongodbConn:
     conn = None
     servers = "mongodb://192.168.3.172:27017"
-
+    # servers = "mongodb://127.0.0.1:27017"
     def connect(self):
         self.conn = pymongo.MongoClient(self.servers)
     def close(self):
