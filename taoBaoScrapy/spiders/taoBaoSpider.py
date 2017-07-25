@@ -70,78 +70,80 @@ class TBSpider(Spider):
 
                 if ' ' in key:
                     key = ''.join(key.split())
+                    print '关键词----------------------------%s'%key
 
                 for i in range(0,int(data['pageNumber'])): #这里不包含101
 
                     if i==0:
+                        try:
+                            if len(str(data['priceUpperLimit'])) > 0 or len(str(data['priceDownLimit'])) > 0:
+                                # 有最高也有低
+                                lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
+                                          '[' + str(data['priceUpperLimit']) + ',' + str(data['priceDownLimit']) + ']&q=' + str(key) + '&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
 
-                        if len(str(data['priceUpperLimit'])) > 0 or len(str(data['priceDownLimit'])) > 0:
-                            # 有最高也有低
-                            lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
-                                      '[' + str(data['priceUpperLimit']) + ',' + str(data['priceDownLimit']) + ']&q=' + str(key) + '&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
+                                #有最低，没最高
+                                # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
+                                #           '[' + str(data['priceUpperLimit']) + ',]&q='+str(key)+'&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
+                                #有最高，没最低
+                                # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
+                                #           '[,' + str(data['priceDownLimit']) + ']&q='+str(key)+'&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
 
-                            #有最低，没最高
-                            # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
-                            #           '[' + str(data['priceUpperLimit']) + ',]&q='+str(key)+'&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
-                            #有最高，没最低
-                            # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
-                            #           '[,' + str(data['priceDownLimit']) + ']&q='+str(key)+'&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
-
-                        else:
-                            # 第一页最后12个产品
-                            # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&bcoffset=0&commend=all&sort=renqi-desc&q='+str(key)+'&s=36&initiative_id=tbindexz_'+str(currentTime)+'&ie=utf8'
-
-                            lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&bcoffset=0&js=1&sort=renqi-desc&q='+str(currentTime)+'&ntoffset=4&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
-
-                        req = urllib2.Request(lastUrl)
-                        res_data = urllib2.urlopen(req)
-                        res = res = res_data.read()
-                        babyInfo = json.loads(res)
-                        itemList = babyInfo['API.CustomizedApi']['itemlist']['auctions']
-                        for j in range(0,len(itemList)):
-                            taoBaoItem = TaobaoscrapyItem()
-                            taoBaoItem['pageNumber'] = i
-                            taoBaoItem['itemID'] = str(data['_id'])
-                            taoBaoItem['ID'] = itemList[j]['nid']
-                            taoBaoItem['detailURL'] = "https://item.taobao.com/item.htm?id=" + str(itemList[j]['nid'])
-
-                            taoBaoItem['name'] = itemList[j]['raw_title']
-                            taoBaoItem['mainPic'] = 'https:'+itemList[j]['pic_url']
-                            taoBaoItem['price'] = itemList[j]['view_price']
-                            # try:
-                            taoBaoItem['payPerson'] = itemList[j]['view_sales']
-                            # except Exception as e:
-                            #     print e
-                            taoBaoItem['shopName'] = itemList[j]['nick']
-                            taoBaoItem['categoryId'] = itemList[j]['category']
-
-                            for k in range(0,len(df)):
-                                if str(df['CategoryId'][k]) == itemList[j]['category']:
-                                    taoBaoItem['category'] = str(df['CategoryName'][k])
-                                    break
-                                else:
-                                    taoBaoItem['category'] = '-'
-
-                            provString = ''
-                            cityStr = ''
-                            if ' ' in itemList[j]['item_loc'] and len(itemList[j]['item_loc']) > 0:
-                                alladdressData = itemList[j]['item_loc'].split(' ')
-                                provString = alladdressData[0]
-                                cityStr = alladdressData[1]
                             else:
-                                provString = ' '
-                                cityStr = itemList[j]['item_loc']
+                                # 第一页最后12个产品
+                                # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&bcoffset=0&commend=all&sort=renqi-desc&q='+str(key)+'&s=36&initiative_id=tbindexz_'+str(currentTime)+'&ie=utf8'
 
-                            taoBaoItem['province'] = provString
-                            taoBaoItem['city'] = cityStr
+                                lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&bcoffset=0&js=1&sort=renqi-desc&q='+str(currentTime)+'&ntoffset=4&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
 
-                            taoBaoItem['year'] = time.strftime('%Y', time.localtime(time.time()))
-                            taoBaoItem['month'] = time.strftime('%m', time.localtime(time.time()))
-                            taoBaoItem['yearAndMonth'] = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                            req = urllib2.Request(lastUrl)
+                            res_data = urllib2.urlopen(req)
+                            res = res = res_data.read()
+                            babyInfo = json.loads(res)
+                            itemList = babyInfo['API.CustomizedApi']['itemlist']['auctions']
+                            for j in range(0,len(itemList)):
+                                taoBaoItem = TaobaoscrapyItem()
+                                taoBaoItem['pageNumber'] = i
+                                taoBaoItem['itemID'] = str(data['_id'])
+                                taoBaoItem['ID'] = itemList[j]['nid']
+                                taoBaoItem['detailURL'] = "https://item.taobao.com/item.htm?id=" + str(itemList[j]['nid'])
+
+                                taoBaoItem['name'] = itemList[j]['raw_title']
+                                taoBaoItem['mainPic'] = 'https:'+itemList[j]['pic_url']
+                                taoBaoItem['price'] = itemList[j]['view_price']
+                                # try:
+                                taoBaoItem['payPerson'] = itemList[j]['view_sales']
+                                # except Exception as e:
+                                #     print e
+                                taoBaoItem['shopName'] = itemList[j]['nick']
+                                taoBaoItem['categoryId'] = itemList[j]['category']
+
+                                for k in range(0,len(df)):
+                                    if str(df['CategoryId'][k]) == itemList[j]['category']:
+                                        taoBaoItem['category'] = str(df['CategoryName'][k])
+                                        break
+                                    else:
+                                        taoBaoItem['category'] = '-'
+
+                                provString = ''
+                                cityStr = ''
+                                if ' ' in itemList[j]['item_loc'] and len(itemList[j]['item_loc']) > 0:
+                                    alladdressData = itemList[j]['item_loc'].split(' ')
+                                    provString = alladdressData[0]
+                                    cityStr = alladdressData[1]
+                                else:
+                                    provString = ' '
+                                    cityStr = itemList[j]['item_loc']
+
+                                taoBaoItem['province'] = provString
+                                taoBaoItem['city'] = cityStr
+
+                                taoBaoItem['year'] = time.strftime('%Y', time.localtime(time.time()))
+                                taoBaoItem['month'] = time.strftime('%m', time.localtime(time.time()))
+                                taoBaoItem['yearAndMonth'] = time.strftime('%Y-%m-%d', time.localtime(time.time()))
 
 
-                            yield taoBaoItem
-
+                                yield taoBaoItem
+                        except Exception as e:
+                            print '--------------%s'%e
 
 
                     #有上限和下限价格的URL
@@ -237,8 +239,8 @@ class TBSpider(Spider):
 #mongodb连接类
 class mongodbConn:
     conn = None
-    servers = "mongodb://192.168.3.172:27017"
-    # servers = "mongodb://127.0.0.1:27017"
+    # servers = "mongodb://192.168.3.172:27017"
+    servers = "mongodb://127.0.0.1:27017"
     def connect(self):
         self.conn = pymongo.MongoClient(self.servers)
     def close(self):
