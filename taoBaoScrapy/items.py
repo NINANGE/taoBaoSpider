@@ -26,6 +26,9 @@ class TaobaoscrapyItem(scrapy.Item):
     detailURL = scrapy.Field()
     categoryId = scrapy.Field()
     category = scrapy.Field()
+    isTmall = scrapy.Field()
+    user_id = scrapy.Field()
+
 
 
 
