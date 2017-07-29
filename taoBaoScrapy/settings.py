@@ -67,7 +67,7 @@ ROBOTSTXT_OBEY = False
 ITEM_PIPELINES = {
    'taoBaoScrapy.pipelines.TaobaoscrapyPipeline': 300,
 }
-MONGODB_SERVER = 'localhost'
+MONGODB_SERVER = '192.168.3.172'
 MONGODB_PORT = 27017
 MONGODB_DB = 'TaoBaoScrapyDB'
 MONGODB_COLLECTION = 'TaoBaoSTB'
