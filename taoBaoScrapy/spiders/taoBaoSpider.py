@@ -1,4 +1,4 @@
-#_*_ coding:utf-8 _*_
+#*_ coding:utf-8 _*_
 # https://s.taobao.com/search?q=%E5%AE%9E%E6%9C%A8%E5%BA%8A&imgfile=&commend=all&ssid=s5-e&search_type=item&sourceId=tb.index&spm=a21bo.50862.201856-taobao-item.1
 # &ie=utf8&initiative_id=tbindexz_20170712&bcoffset=4&ntoffset=4&p4ppushleft=1%2C48&sort=renqi-desc
 # https://s.taobao.com/search?q=%E5%AE%9E%E6%9C%A8%E5%BA%8A&imgfile=&commend=all&ssid=s5-e&search_type=item&sourceId=tb.index&spm=a21bo.50862.201856-taobao-item.1
@@ -45,7 +45,7 @@ import json
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-df = pd.read_csv('taoBaoCategory.csv')
+df = pd.read_csv('/home/django/nange/taoBaoSpider/taoBaoScrapy/spiders/taoBaoCategory.csv')
 
 class TBSpider(Spider):
     name = 'taoBaoSpider'
