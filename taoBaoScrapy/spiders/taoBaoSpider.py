@@ -132,10 +132,16 @@ class TBSpider(Spider):
                                     taoBaoItem['name'] = itemList[j]['raw_title']
                                     taoBaoItem['mainPic'] = 'https:'+itemList[j]['pic_url']
                                     taoBaoItem['price'] = itemList[j]['view_price']
-                                    # try:
-                                    taoBaoItem['payPerson'] = itemList[j]['view_sales']
-                                    # except Exception as e:
-                                    #     print e
+
+                                    viewSales = str(itemList[j]['view_sales'])
+                                    if u'人付款' in viewSales:
+                                        # try:
+                                        viewSales = viewSales.replace(u'人付款','')
+                                        taoBaoItem['payPerson'] = viewSales
+                                        # except Exception as e:
+                                        #     print e
+                                    else:
+                                        taoBaoItem['payPerson'] = itemList[j]['view_sales']
                                     taoBaoItem['shopName'] = itemList[j]['nick']
                                     taoBaoItem['categoryId'] = itemList[j]['category']
                                     taoBaoItem['isTmall'] = itemList[j]['isTmall']
@@ -260,7 +266,17 @@ class TBSpider(Spider):
             taoBaoItem['name'] = allName[j]
             taoBaoItem['mainPic'] = 'https:'+allPic[j]
             taoBaoItem['price'] = allprice[j]
-            taoBaoItem['payPerson'] = allPayPerson[j]
+
+            viewSales = str(allPayPerson[j])
+            if u'人付款' in viewSales:
+                # try:
+                viewSales = viewSales.replace(u'人付款', '')
+                taoBaoItem['payPerson'] = viewSales
+                # except Exception as e:
+                #     print e
+            else:
+                taoBaoItem['payPerson'] = allPayPerson[j]
+
             taoBaoItem['shopName'] = allShopName[j]
             taoBaoItem['categoryId'] = allCategory[j]
             taoBaoItem['isTmall'] = allIsTmall[j]
