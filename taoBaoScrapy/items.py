@@ -29,6 +29,10 @@ class TaobaoscrapyItem(scrapy.Item):
     isTmall = scrapy.Field()
     user_id = scrapy.Field()
     market = scrapy.Field()
+    customized = scrapy.Field()
+    categoryTree = scrapy.Field()
+    offTime = scrapy.Field()
+    state = scrapy.Field()
 
 
 

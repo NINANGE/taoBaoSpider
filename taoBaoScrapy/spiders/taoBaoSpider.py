@@ -41,13 +41,22 @@ import urllib2
 import pymongo
 import datetime
 import json
+import copy
+from taoBaoScrapy.removeDeleteRepeat import allStoreScrapy
 
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 df = pd.read_csv('/home/django/nange/taoBaoSpider/taoBaoScrapy/spiders/taoBaoCategory.csv')
+# df = pd.read_csv('/Users/zhuoqin/taoBaoScrapy/taoBaoScrapy/spiders/taoBaoCategory.csv')
+
+allPidData = []
 
 class TBSpider(Spider):
+
+    # def __init__(self):
+    #     self.allPidData = list()
+
     name = 'taoBaoSpider'
     allowed_domains = ["taobao.com"]
     start_urls = ['https://taobao.com/']
@@ -78,6 +87,7 @@ class TBSpider(Spider):
 
                     for i in range(0,int(data['pageNumber'])): #这里不包含101
 
+                        allPidDetailData = []
                         if i==0:
                             try:
                                 if len(str(data['priceUpperLimit'])) > 0 or len(str(data['priceDownLimit'])) > 0:
@@ -91,13 +101,6 @@ class TBSpider(Spider):
                                         lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
                                                   '[' + str(data['priceUpperLimit']) + ',' + str(data['priceDownLimit']) + ']&q=' + str(key) + '&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
 
-                                    #有最低，没最高
-                                    # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
-                                    #           '[' + str(data['priceUpperLimit']) + ',]&q='+str(key)+'&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
-                                    #有最高，没最低
-                                    # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&stats_click=search_radio_all:1&bcoffset=0&js=1&sort=renqi-desc&filter=reserve_price' \
-                                    #           '[,' + str(data['priceDownLimit']) + ']&q='+str(key)+'&s=36&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8'
-
                                 else:
                                     # 第一页最后12个产品
                                     # lastUrl = 'https://s.taobao.com/api?ajax=true&m=customized&bcoffset=0&commend=all&sort=renqi-desc&q='+str(key)+'&s=36&initiative_id=tbindexz_'+str(currentTime)+'&ie=utf8'
@@ -108,14 +111,17 @@ class TBSpider(Spider):
 
                                 req = urllib2.Request(lastUrl)
                                 res_data = urllib2.urlopen(req)
-                                res = res = res_data.read()
+                                res = res_data.read()
                                 babyInfo = json.loads(res)
                                 itemList = babyInfo['API.CustomizedApi']['itemlist']['auctions']
                                 for j in range(0,len(itemList)):
                                     taoBaoItem = TaobaoscrapyItem()
                                     taoBaoItem['pageNumber'] = i
                                     taoBaoItem['itemID'] = str(data['_id'])
+                                    taoBaoItem['customized'] = data['customized']
                                     taoBaoItem['ID'] = itemList[j]['nid']
+
+                                    allPidDetailData.append(itemList[j]['nid'])
                                     if str(data['market']) == '2':
                                         taoBaoItem['detailURL'] = "https://detail.tmall.com/item.htm?id="+ str(itemList[j]['nid'])
                                         taoBaoItem['market'] = '天猫'
@@ -127,11 +133,12 @@ class TBSpider(Spider):
                                             taoBaoItem['detailURL'] = "https://detail.tmall.com/item.htm?id=" + str(itemList[j]['nid'])
                                             taoBaoItem['market'] = '天猫'
 
-                                        taoBaoItem['detailURL'] = "https://item.taobao.com/item.htm?id=" + str(itemList[j]['nid'])
+                                        # taoBaoItem['detailURL'] = "https://item.taobao.com/item.htm?id=" + str(itemList[j]['nid'])
 
                                     taoBaoItem['name'] = itemList[j]['raw_title']
                                     taoBaoItem['mainPic'] = 'https:'+itemList[j]['pic_url']
                                     taoBaoItem['price'] = itemList[j]['view_price']
+
 
                                     viewSales = str(itemList[j]['view_sales'])
                                     if u'人付款' in viewSales:
@@ -171,8 +178,11 @@ class TBSpider(Spider):
                                     taoBaoItem['month'] = time.strftime('%m', time.localtime(time.time()))
                                     taoBaoItem['yearAndMonth'] = time.strftime('%Y-%m-%d', time.localtime(time.time()))
 
-
+                                    taoBaoItem['categoryTree'] = '-'
+                                    taoBaoItem['offTime'] = '-'
+                                    taoBaoItem['state'] = str(data['state'])
                                     yield taoBaoItem
+                                    # allPidData.append(allPidDetailData)
                             except Exception as e:
                                 print '--------------%s'%e
 
@@ -212,11 +222,13 @@ class TBSpider(Spider):
                                 url = 'https://s.taobao.com/search?q='+str(key)+'&imgfile=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_'+str(currentTime)+'&ie=utf8&sort=renqi-desc&bcoffset=4' \
                                       '&ntoffset=4&p4ppushleft=2%2C48&s='+str(44*i)
 
-                        yield Request(url=url,callback=self.page2,meta={'page':i,'productID':str(data['_id']),'market':data['market']})
+                        yield Request(url=url,callback=self.page2,meta={'page':i,'productID':str(data['_id']),'market':data['market'],'customized': data['customized'],'state':data['state']})
 
-
+                    # categoryData(allPidData)
+        # print '任务正在进行时---%s' % self.allPidData
 
     def page2(self,response):
+
         body = response.body.decode("utf-8", "ignore")
         patPic = '"pic_url":"(.*?)"'
         patid = '"nid":"(.*?)"'
@@ -233,6 +245,8 @@ class TBSpider(Spider):
         detailURL = '"detail_url":"(.*?)"'
 
 
+
+        #
         allPic = re.compile(patPic).findall(body) #图片集合
         allid = re.compile(patid).findall(body)  # 商品Id集合
         allprice = re.compile(patprice).findall(body)  # 商品价格集合
@@ -245,13 +259,16 @@ class TBSpider(Spider):
         allUserId = re.compile(user_id).findall(body)
         allDetailURL = re.compile(detailURL).findall(body)
 
+        allPidData.append(allid)
+
         for j in range(0,len(allid)):
             taoBaoItem = TaobaoscrapyItem()
             # taoBaoItem['serialNumber'] = j
             taoBaoItem['pageNumber'] = response.meta['page']
             taoBaoItem['itemID'] = response.meta['productID']
+            taoBaoItem['customized'] = response.meta['customized']
+            taoBaoItem['state'] = response.meta['state']
             taoBaoItem['ID'] = allid[j]
-
             if str(response.meta['market']) == '2':
                 taoBaoItem['detailURL'] = "https://detail.tmall.com/item.htm?id=" + str(allid[j])
                 taoBaoItem['market'] = '天猫'
@@ -306,8 +323,27 @@ class TBSpider(Spider):
             taoBaoItem['year'] = time.strftime('%Y',time.localtime(time.time()))
             taoBaoItem['month'] = time.strftime('%m',time.localtime(time.time()))
             taoBaoItem['yearAndMonth'] = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+            taoBaoItem['categoryTree'] = '-'
+            taoBaoItem['offTime'] = '-'
 
             yield taoBaoItem
+
+        # print '测试一下---%s' % self.allPidData
+        # categoryData()
+
+
+        #数组转字符串
+
+    def close(spider, reason):
+
+        time.sleep(1.0)
+        print '任务正在进行时---%s' % allPidData
+        result = getTaoBaoData()
+        categoryData(allPidData,result)
+
+        allStoreScrapy()
+
+
 
 
 
@@ -333,11 +369,91 @@ def getAllKeyword():
     result = table.find({})
     return result
 
+def getTaoBaoData():
+    dbconn = mongodbConn()
+    dbconn.connect()
+    conn = dbconn.getConn()
+
+    table = conn.TaoBaoScrapyDB.TaoBaoSTB
+
+    result = table.find({})
+    return result
 
 
 
 
+def categoryData(allPidData,results):
+    # print '类型----%s----%s' % (type(allPidData), allPidData)
+    resultsList = list(results)
+    for categoryPidData in allPidData:
+        # print '数据---------%s'%allPidData
 
+        str_data = ",".join(categoryPidData)
+        # print type(allPidData)
+        #
+        url = 'http://plugin.qly360.com/productDetailList.do?spid=' + str_data
+
+        print '地址---------%s' % url
+
+        req = urllib2.Request(url)
+        res_data = urllib2.urlopen(req)
+        res = res_data.read()
+
+        babyCategoryInfo = json.loads(res)
+        # result = copy.deepcopy(results)
+        # result = getTaoBaoData()
+        for data in babyCategoryInfo:
+            ID = data['pid']
+
+            # try:
+            if '-' in data['category']:
+                # 类目
+                category = data['category'].encode("utf-8")
+                categoryTree = category
+                categoryName = category.split('-')[-1]
+
+            else:
+                categoryTree = data['category'].encode("utf-8")
+                categoryName = '-'
+
+                # 下架时间
+            time_local = data['delist'] / 1000
+
+            time_local = time.localtime(time_local)
+
+            offTime = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+            product = {
+                'category': categoryName,
+                'categoryTree': categoryTree,
+                'offTime': offTime,
+            }
+
+
+            # print result
+            # print 'ID----%s---%s' % (ID, type(ID))
+            # result = getTaoBaoData()
+            for categoryData in resultsList:
+                # print '结果数据源----------%s----%s---%s---%s'%(result.count(),categoryName,categoryData['ID'],ID)
+                if int(categoryData['ID']) == ID:
+                    print '相等'
+                    saveCategory(categoryData['ID'], categoryName, categoryTree, offTime)
+
+
+def saveCategory(ID,categoryName,categoryTree,offTime):
+    dbconn = mongodbConn()
+    dbconn.connect()
+    conn = dbconn.getConn()
+    table = conn.TaoBaoScrapyDB.TaoBaoSTB  # 获取数据库中的所有关键字条件
+
+    try:
+        table.update({'ID': ID}, {'$set': {'category': categoryName}})
+        table.update({'ID': ID}, {'$set': {'categoryName': categoryTree}})
+        table.update({'ID': ID}, {'$set': {'offTime': offTime}})
+        # if table.insert(result):
+        print '保存数据成功--%s--%s--%s--%s'%(ID,categoryTree,categoryName,offTime)
+        # print '数据-----%s'%(table.update({'ID': ID}, {'$set': {'offTime': offTime}}))
+    except Exception as e:
+        print('保存到MONGODB失败', e)
 
 
 
