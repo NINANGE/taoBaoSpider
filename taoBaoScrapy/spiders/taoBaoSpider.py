@@ -133,7 +133,6 @@ class TBSpider(Spider):
                                             taoBaoItem['detailURL'] = "https://detail.tmall.com/item.htm?id=" + str(itemList[j]['nid'])
                                             taoBaoItem['market'] = '天猫'
 
-                                        # taoBaoItem['detailURL'] = "https://item.taobao.com/item.htm?id=" + str(itemList[j]['nid'])
 
                                     taoBaoItem['name'] = itemList[j]['raw_title']
                                     taoBaoItem['mainPic'] = 'https:'+itemList[j]['pic_url']
