@@ -83,7 +83,6 @@ class TBSpider(Spider):
 
                     if ' ' in key:
                         key = ''.join(key.split())
-                        print '关键词----------------------------%s'%key
 
                     for i in range(0,int(data['pageNumber'])): #这里不包含101
 
@@ -335,12 +334,17 @@ class TBSpider(Spider):
 
     def close(spider, reason):
 
-        time.sleep(1.0)
-        print '任务正在进行时---%s' % allPidData
-        result = getTaoBaoData()
-        categoryData(allPidData,result)
+        try:
+            time.sleep(1.0)
+            print '任务正在进行时---%s' % allPidData
+            result = getTaoBaoData()
+            categoryData(allPidData,result)
 
-        allStoreScrapy()
+            allStoreScrapy()
+        except Exception as e:
+            pass
+        finally:
+            print '到些结束啦'
 
 
 
@@ -382,7 +386,6 @@ def getTaoBaoData():
 
 
 def categoryData(allPidData,results):
-    # print '类型----%s----%s' % (type(allPidData), allPidData)
     resultsList = list(results)
     for categoryPidData in allPidData:
         # print '数据---------%s'%allPidData
@@ -427,9 +430,6 @@ def categoryData(allPidData,results):
                 'offTime': offTime,
             }
 
-
-            # print result
-            # print 'ID----%s---%s' % (ID, type(ID))
             # result = getTaoBaoData()
             for categoryData in resultsList:
                 # print '结果数据源----------%s----%s---%s---%s'%(result.count(),categoryName,categoryData['ID'],ID)
@@ -445,9 +445,9 @@ def saveCategory(ID,categoryName,categoryTree,offTime):
     table = conn.TaoBaoScrapyDB.TaoBaoSTB  # 获取数据库中的所有关键字条件
 
     try:
-        table.update({'ID': ID}, {'$set': {'category': categoryName}})
-        table.update({'ID': ID}, {'$set': {'categoryName': categoryTree}})
-        table.update({'ID': ID}, {'$set': {'offTime': offTime}})
+        table.update({'ID': ID}, {'$set': {'category': categoryName}},multi=True)
+        table.update({'ID': ID}, {'$set': {'categoryName': categoryTree}},multi=True)
+        table.update({'ID': ID}, {'$set': {'offTime': offTime}},multi=True)
         # if table.insert(result):
         print '保存数据成功--%s--%s--%s--%s'%(ID,categoryTree,categoryName,offTime)
         # print '数据-----%s'%(table.update({'ID': ID}, {'$set': {'offTime': offTime}}))

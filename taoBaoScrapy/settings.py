@@ -68,6 +68,7 @@ ITEM_PIPELINES = {
    'taoBaoScrapy.pipelines.TaobaoscrapyPipeline': 300,
 }
 MONGODB_SERVER = '192.168.3.172'
+# MONGODB_SERVER = '127.0.0.1'
 MONGODB_PORT = 27017
 MONGODB_DB = 'TaoBaoScrapyDB'
 MONGODB_COLLECTION = 'TaoBaoSTB'

@@ -15,7 +15,7 @@ def allStoreScrapy():
     j = 0
     for data in result:
         j += 1
-        print 'j-----------————%s'%j
+        # print 'j-----------————%s'%j
         if data['customized'] == '是':
 
             babyID = data['ID']
@@ -90,17 +90,23 @@ def conneStore():
     conn = dbconn.getConn()
     table = conn.TaoBaoScrapyDB.ALLStoreTB  # 获取数据库中的所有关键字条件
 
-    for url in table.distinct('address'):  # 使用distinct方法，获取每一个独特的元素列表
-        num = table.count({"address": url})  # 统计每一个元素的数量
-        print num
-        for i in range(1, num):  # 根据每一个元素的数量进行删除操作，当前元素只有一个就不再删除
-            print 'delete %s %d times ' % (url, i)
-            # 注意后面的参数， 很奇怪，在mongo命令行下，它为1时，是删除一个元素，这里却是为0时删除一个
-            table.remove({"address": url}, 0)
-        # for i in table.find({"longitude": url}):  # 打印当前所有元素
-        #     print i
-
-    print '去重成功'
+    try:
+        for url in table.distinct('address'):  # 使用distinct方法，获取每一个独特的元素列表
+            num = table.count({"address": url})  # 统计每一个元素的数量
+            print num
+            for i in range(1, num):  # 根据每一个元素的数量进行删除操作，当前元素只有一个就不再删除
+                print 'delete %s %d times ' % (url, i)
+                # 注意后面的参数， 很奇怪，在mongo命令行下，它为1时，是删除一个元素，这里却是为0时删除一个
+                table.remove({"address": url}, 0)
+            # for i in table.find({"longitude": url}):  # 打印当前所有元素
+            #     print i
+        print '去重成功'
+    except Exception as e:
+        pass
+    finally:
+        dbconn.close()
+        # dbconn = None
+        print '到此结束'
 
 #保存到mongodb数据库中
 def save_to_mongodb(result):
@@ -110,6 +116,7 @@ def save_to_mongodb(result):
     # table = conn.TaoBaoScrapyDB.ALLStoreTB  # 获取数据库中的所有关键字条件
 
     conn = pymongo.MongoClient('192.168.3.172', 27017)
+    # conn = pymongo.MongoClient('127.0.0.1', 27017)
     table = conn.TaoBaoScrapyDB.ALLStoreTB
     try:
         if table.insert(result):
@@ -124,18 +131,28 @@ def crate_temTable():
     conn = dbconn.getConn()
 
 
-    result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({"$or": [{"state": "进行中"}, {"state": "待开启"}]})
-    result.aggregate(
-        [
-            {'$project': {
-                'ID': '$ID',
-                'customized':'$customized',
-                'itemID':'$itemID'
-            }},
-            {'$out': 'allStoreResults'}
-        ]
-    )
-    dele_repeat()
+    # result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({"$or": [{"state": "进行中"}, {"state": "待开启"}]})
+
+    # result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({"$or": [{"state": "进行中"}, {"state": "待开启"}]})
+    try:
+        conn.TaoBaoScrapyDB.TaoBaoSTB.aggregate(
+            [
+                {'$project': {
+                    'ID': '$ID',
+                    'customized':'$customized',
+                    'itemID':'$itemID'
+                }},
+                {'$out': 'allStoreResults'}
+            ]
+        )
+
+    except Exception as e:
+        pass
+    finally:
+        # dbconn.close()
+        # conn = None
+        print '到此结束'
+        dele_repeat()
 
 #先进行去重操作
 def dele_repeat():
@@ -143,17 +160,22 @@ def dele_repeat():
     dbconn.connect()
     conn = dbconn.getConn()
     table = conn.TaoBaoScrapyDB.allStoreResults  # 获取数据库中的所有关键字条件
-
-    for url in table.distinct('ID'):  # 使用distinct方法，获取每一个独特的元素列表
-        num = table.count({"ID": url})  # 统计每一个元素的数量
-        print num
-        for i in range(1, num):  # 根据每一个元素的数量进行删除操作，当前元素只有一个就不再删除
-            print 'delete %s %d times ' % (url, i)
-            # 注意后面的参数， 很奇怪，在mongo命令行下，它为1时，是删除一个元素，这里却是为0时删除一个
-            table.remove({"ID": url}, 0)
-        # for i in table.find({"ID": url}):  # 打印当前所有元素
-        #     print i
-    print '去重成功'
+    try:
+        for url in table.distinct('ID'):  # 使用distinct方法，获取每一个独特的元素列表
+            num = table.count({"ID": url})  # 统计每一个元素的数量
+            print num
+            for i in range(1, num):  # 根据每一个元素的数量进行删除操作，当前元素只有一个就不再删除
+                print 'delete %s %d times ' % (url, i)
+                # 注意后面的参数， 很奇怪，在mongo命令行下，它为1时，是删除一个元素，这里却是为0时删除一个
+                table.remove({"ID": url}, 0)
+            # for i in table.find({"ID": url}):  # 打印当前所有元素
+            #     print i
+    except Exception as e:
+        pass
+    finally:
+        # dbconn.close()
+        # dbconn = None
+        print '到此结束'
 
 
 # if __name__ == '__main__':
