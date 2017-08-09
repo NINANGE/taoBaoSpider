@@ -3,6 +3,7 @@
 
 import urllib2
 import pymongo
+import time
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -130,12 +131,12 @@ def crate_temTable():
     dbconn.connect()
     conn = dbconn.getConn()
 
-
+    result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({'yearAndMonth':time.strftime('%Y-%m-%d',time.localtime(time.time()))})
     # result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({"$or": [{"state": "进行中"}, {"state": "待开启"}]})
 
     # result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({"$or": [{"state": "进行中"}, {"state": "待开启"}]})
     try:
-        conn.TaoBaoScrapyDB.TaoBaoSTB.aggregate(
+        result.aggregate(
             [
                 {'$project': {
                     'ID': '$ID',
