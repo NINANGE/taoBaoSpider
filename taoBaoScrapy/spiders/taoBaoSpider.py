@@ -342,7 +342,7 @@ class TBSpider(Spider):
 
             allStoreScrapy()
         except Exception as e:
-            pass
+            print e
         finally:
             print '到些结束啦'
 
@@ -390,6 +390,9 @@ def categoryData(allPidData,results):
     for categoryPidData in allPidData:
         # print '数据---------%s'%allPidData
 
+        if len(categoryPidData)==0:
+            continue
+        
         str_data = ",".join(categoryPidData)
         # print type(allPidData)
         #
