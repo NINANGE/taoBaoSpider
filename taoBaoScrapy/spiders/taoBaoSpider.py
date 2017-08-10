@@ -392,7 +392,7 @@ def categoryData(allPidData,results):
 
         if len(categoryPidData)==0:
             continue
-        
+
         str_data = ",".join(categoryPidData)
         # print type(allPidData)
         #
