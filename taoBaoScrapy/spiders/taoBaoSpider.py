@@ -67,8 +67,8 @@ class TBSpider(Spider):
         results = getAllKeyword()
 
         for data in results:
-            print '是否待开启------------%s'%str(data['state'])
-            if (str(data['state'])=='待开启') or ('03' == times):
+            print 'state------------%s'%str(data['state'])
+            if (str(data['state'])=='待开启') or ('02' == times):
 
 
                 nowTime = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -326,9 +326,6 @@ class TBSpider(Spider):
 
             yield taoBaoItem
 
-        # print '测试一下---%s' % self.allPidData
-        # categoryData()
-
 
         #数组转字符串
 
@@ -336,15 +333,15 @@ class TBSpider(Spider):
 
         try:
             time.sleep(1.0)
-            print '任务正在进行时---%s' % allPidData
+            # print '任务正在进行时---%s' % allPidData
             result = getTaoBaoData()
             categoryData(allPidData,result)
 
             allStoreScrapy()
         except Exception as e:
-            print e
+            print 'spiderError in parse ---%s'%e
         finally:
-            print '到些结束啦'
+            print '到些结束啦***'
 
 
 
@@ -367,20 +364,20 @@ def getAllKeyword():
     dbconn.connect()
     conn = dbconn.getConn()
 
-    table = conn.TaoBaoScrapyDB.projectKeyWordTB #获取数据库中的所有关键字条件
+    # table = conn.TaoBaoScrapyDB.projectKeyWordTB #获取数据库中的所有关键字条件
 
-    result = table.find({})
-    return result
+    # result = conn.TaoBaoScrapyDB.projectKeyWordTB.find({})
+    return conn.TaoBaoScrapyDB.projectKeyWordTB.find({})
 
 def getTaoBaoData():
     dbconn = mongodbConn()
     dbconn.connect()
     conn = dbconn.getConn()
 
-    table = conn.TaoBaoScrapyDB.TaoBaoSTB
+    # table = conn.TaoBaoScrapyDB.TaoBaoSTB
 
-    result = table.find({})
-    return result
+    # result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({})
+    return conn.TaoBaoScrapyDB.TaoBaoSTB.find({})
 
 
 
@@ -398,7 +395,7 @@ def categoryData(allPidData,results):
         #
         url = 'http://plugin.qly360.com/productDetailList.do?spid=' + str_data
 
-        print '地址---------%s' % url
+        print 'address---------%s' % url
 
         req = urllib2.Request(url)
         res_data = urllib2.urlopen(req)
@@ -437,7 +434,6 @@ def categoryData(allPidData,results):
             for categoryData in resultsList:
                 # print '结果数据源----------%s----%s---%s---%s'%(result.count(),categoryName,categoryData['ID'],ID)
                 if int(categoryData['ID']) == ID:
-                    print '相等'
                     saveCategory(categoryData['ID'], categoryName, categoryTree, offTime)
 
 
@@ -445,17 +441,17 @@ def saveCategory(ID,categoryName,categoryTree,offTime):
     dbconn = mongodbConn()
     dbconn.connect()
     conn = dbconn.getConn()
-    table = conn.TaoBaoScrapyDB.TaoBaoSTB  # 获取数据库中的所有关键字条件
+    # table = conn.TaoBaoScrapyDB.TaoBaoSTB  # 获取数据库中的所有关键字条件
 
     try:
-        table.update({'ID': ID}, {'$set': {'category': categoryName}},multi=True)
-        table.update({'ID': ID}, {'$set': {'categoryName': categoryTree}},multi=True)
-        table.update({'ID': ID}, {'$set': {'offTime': offTime}},multi=True)
+        conn.TaoBaoScrapyDB.TaoBaoSTB.update({'ID': ID}, {'$set': {'category': categoryName}},multi=True)
+        conn.TaoBaoScrapyDB.TaoBaoSTB.update({'ID': ID}, {'$set': {'categoryName': categoryTree}},multi=True)
+        conn.TaoBaoScrapyDB.TaoBaoSTB.update({'ID': ID}, {'$set': {'offTime': offTime}},multi=True)
         # if table.insert(result):
-        print '保存数据成功--%s--%s--%s--%s'%(ID,categoryTree,categoryName,offTime)
+        print 'save_Success--%s--%s--%s--%s'%(ID,categoryTree,categoryName,offTime)
         # print '数据-----%s'%(table.update({'ID': ID}, {'$set': {'offTime': offTime}}))
     except Exception as e:
-        print('保存到MONGODB失败', e)
+        print('save_Error--', e)
 
 
 
