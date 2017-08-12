@@ -377,7 +377,7 @@ def getTaoBaoData():
     # table = conn.TaoBaoScrapyDB.TaoBaoSTB
 
     # result = conn.TaoBaoScrapyDB.TaoBaoSTB.find({})
-    return conn.TaoBaoScrapyDB.TaoBaoSTB.find({})
+    return conn.TaoBaoScrapyDB.TaoBaoSTB.find({'yearAndMonth':time.strftime('%Y-%m-%d',time.localtime(time.time()))})
 
 
 
